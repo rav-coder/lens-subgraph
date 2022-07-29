@@ -123,8 +123,10 @@ export function handlePostCreated(event: PostCreated): void {
 
 export function handleProfileCreated(event: ProfileCreated): void {
   let profile = new Profile(event.params.profileId.toString())
+
   profile.profileId = event.params.profileId
   profile.creator = event.params.to
+  
   profile.save()
 }
 

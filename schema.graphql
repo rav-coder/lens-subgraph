@@ -1,5 +1,326 @@
 type Profile @entity {
   id: ID!
   profileId: BigInt!
-  creator: Bytes! # address
+  ownedBy: Bytes!
+  bio: String
+  name: String
+  attributes: [Attribute!] @derivedFrom(field: "profile")
+  handle: String
+  imageURI: String
+  followModule: Bytes
+  followModuleReturnData: Bytes
+  metadata: String
+  followNFTURI: String
+  lastUpdated: BigInt
+  posts: [Post!] @derivedFrom(field: "profile")
+  stats: ProfileStats!
+}
+  
+type Post @entity {
+  id: ID!
+  profile: Profile!
+  onChainContentURI: String
+  collectModule: Bytes
+  collectModuleReturnData: Bytes
+  pubId: BigInt
+  referenceModule: Bytes
+  referenceModuleReturnData: Bytes 
+  createdAt: BigInt
+}
+
+type Attribute @entity {
+  id: ID!
+  profile: Profile!
+  traitType: String
+  key: String
+  value: String
+}
+
+type Creator @entity {
+  id: ID!
+  address: Bytes!
+  isWhitelisted: Boolean!
+  lastUpdated: BigInt!
+}
+
+type Approval @entity {
+  id: ID!
+  owner: Bytes! # address
+  approved: Bytes! # address
+  tokenId: BigInt! # uint256
+}
+
+type ApprovalForAll @entity {
+  id: ID!
+  owner: Bytes! # address
+  operator: Bytes! # address
+  approved: Boolean! # bool
+}
+
+type Collect @entity {
+  id: ID!
+  collector: Bytes! # address
+  
+  profileId: BigInt!
+  "Publication Id"
+  pubId: BigInt!
+
+  rootProfileId:  BigInt!
+  rootPubId: BigInt!
+
+    "Date of creation"
+  timestamp: BigInt!
+
+}
+
+type ProfileStats @entity {
+  id: ID!
+  totalFollowers: Int!
+  totalFollowing: Int!
+  totalPosts: Int!
+  totalComments: Int!
+  totalMirrors: Int!
+  totalPublications: Int!
+  totalCollects: Int!
+}
+
+interface Publication @entity {
+  id: ID!
+  "Profile that created the publication"
+  fromProfile: Profile!
+  "Publication Id"
+  pubId: BigInt!
+  referenceModule: Bytes!
+  referenceModuleReturnData: Bytes
+  "Date of creation"
+  timestamp: BigInt!
+}
+
+type FreeCollectModuleSettings  @entity {
+  id: ID!
+  # The collect modules enum
+  type: CollectModules!
+  contractAddress: Bytes!
+
+  # Follower only
+  followerOnly: Boolean!
+}
+
+# The collect module types
+enum CollectModules {
+  LimitedFeeCollectModule
+  FeeCollectModule
+  LimitedTimedFeeCollectModule
+  TimedFeeCollectModule
+  RevertCollectModule
+  FreeCollectModule
+}
+
+type TimedFeeCollectModuleSettings  @entity {
+  id: ID!
+  # The collect modules enum
+  type: CollectModules!
+  contractAddress:  Bytes!
+
+  # The collect module amount info
+  amount: BigDecimal!
+
+  # The collect module recipient address
+  recipient: Bytes!
+
+  # The collect module referral fee
+  referralFee: BigDecimal!
+
+  # Follower only
+  followerOnly: Boolean!
+
+  # The collect module end timestamp
+  endTimestamp: BigInt!
+}
+
+type RevertCollectModuleSettings  @entity {
+  id: ID!
+  # The collect modules enum
+  type: CollectModules!
+  contractAddress:  Bytes!
+}
+
+type LimitedTimedFeeCollectModuleSettings  @entity {
+  id: ID!
+  # The collect modules enum
+  type: CollectModules!
+  contractAddress:  Bytes!
+
+  # The collect module limit
+  collectLimit: String!
+
+  # The collect module amount info
+  amount: BigDecimal!
+
+  # The collect module recipient address
+  recipient: Bytes!
+
+  # The collect module referral fee
+  referralFee: BigDecimal!
+
+  # Follower only
+  followerOnly: Boolean!
+
+  # The collect module end timestamp
+  endTimestamp: BigInt!
+}
+
+type LimitedFeeCollectModuleSettings  @entity {
+  id: ID!
+  # The collect modules enum
+  type: CollectModules!
+  contractAddress:  Bytes!
+
+  # The collect module limit
+  collectLimit: String!
+
+  # The collect module amount info
+  amount: BigDecimal!
+
+  # The collect module recipient address
+  recipient: Bytes!
+
+  # The collect module referral fee
+  referralFee: BigDecimal!
+
+  # Follower only
+  followerOnly: Boolean!
+}
+
+type FeeCollectModuleSettings  @entity {
+  id: ID!
+  # The collect modules enum
+  type: CollectModules!
+  contractAddress:  Bytes!
+
+  # The collect module amount info
+  amount: BigDecimal!
+
+  # The collect module recipient address
+  recipient: Bytes!
+
+  # The collect module referral fee
+  referralFee: BigDecimal!
+
+  # Follower only
+  followerOnly: Boolean!
+}
+
+type Comment implements Publication @entity {
+  id: ID!
+  "Profile that created the post"
+  fromProfile: Profile!
+  "Publication Id"
+  pubId: BigInt!
+  referenceModule: Bytes!
+  referenceModuleReturnData: Bytes
+  "URI of the post content"
+  contentURI: String!
+  profileIdPointed: BigInt!
+  pubIdPointed: BigInt!
+  collectModule: Bytes
+  collectModuleReturnData: Bytes
+  "Date of creation"
+  timestamp: BigInt!
+}
+
+type Stat @entity {
+  id: ID!
+  "Total profiles"
+  totalProfiles: BigInt!
+  "Total accounts"
+  totalAccounts: BigInt!
+  "Total Post"
+  totalPosts: BigInt!
+  "Total Comments"
+  totalComments: BigInt!
+  "Total Mirrors"
+  totalMirror: BigInt!
+  "Total Publicactions"
+  totalPublications: BigInt!
+  "Last Comment created"
+  lastCommentCreatedAt: BigInt
+  "Last Post created"
+  lastPostCreatedAt: BigInt
+  "Last Mirror created"
+  lastMirrorCreatedAt: BigInt
+  "Last Profile created"
+  lastProfileCreated: BigInt
+}
+
+type EnabledModuleCurrencies @entity {
+  id: ID!
+  name: String
+  symbol: String
+  decimals: Int
+  address: Bytes!
+}
+
+type Treasury @entity {
+  id: ID!
+  address: Bytes
+  fee: Int
+}
+
+type SocialGraph @entity {
+  id: ID! # address
+  following: [Profile!]!
+}
+
+type FollowApproved @entity {
+    id: ID!
+
+    addresses: [Profile!]!
+
+}
+
+type Mirror @entity {
+  id: ID! # txn
+  profileId: BigInt!
+  pubId: BigInt!
+  profileIdPointed: BigInt!
+  pubIdPointed: BigInt!
+  referenceModule: Bytes!
+  referenceModuleReturnData: Bytes!
+  timestamp: BigInt!
+}
+
+type FollowNftTransferred @entity {
+  id: ID!
+  profileId: BigInt!
+  followNFTID: BigInt!
+  from: String!
+  to: String!
+  timestamp: BigInt!
+}
+
+type HandleGovernanceSet @entity {
+    id: ID!
+    prevGovernance: String!
+    newGovernance: String!
+    timestamp: BigInt!
+}
+
+type HandleModuleBaseConstructed @entity {
+    id: ID!
+    timestamp: BigInt!
+    hub: Bytes!
+}
+
+type HandleModuleGlobalsCurrencyWhitelisted @entity {
+    id: ID!
+    currency: ID!
+    prevWhitelisted: Boolean!
+    whitelisted: Boolean!
+}
+
+type HandleModuleGlobalsGovernanceSet @entity {
+    id: ID!
+    prevGovernance: String!
+    newGovernance: String!
 }
